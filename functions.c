@@ -87,9 +87,9 @@ size_t getPointsInside(double complex * points,
         }
     }
 
-    for ( j = 0; angles_count - 1; j++ ) {
-        for (k = angles_count - 1; k > j; k--) {
 
+    for ( j = 0; j < angles_count - 1; j++ ) {
+        for (k = angles_count - 1; k > j; k--) {
             if ( comparePairs(angles[k-1], angles[k]) ) {
                 swapPairs( &angles[k-1], &angles[k] );
             }
@@ -97,11 +97,12 @@ size_t getPointsInside(double complex * points,
         }
     }
 
+
     count = 1;
     res = 1;
-    for (j = 0; j < angles_count; i++) {
+    for (j = 0; j < angles_count; j++) {
 
-        if (angles[angles_count].second)
+        if (angles[j].second)
             count++;
         else
             count--;
@@ -121,6 +122,7 @@ size_t maxPoints(double complex * points, size_t num_points, double radius) {
     size_t i = 0;
     size_t j = 0;
     size_t ans = 0;
+
     dis = (double**)malloc(sizeof(double*)*num_points);
     for (i = 0; i < num_points; i++) {
         dis[i] = (double*)malloc(sizeof(double)*num_points);
@@ -132,9 +134,11 @@ size_t maxPoints(double complex * points, size_t num_points, double radius) {
         }
     }
 
-    for (i = 0; i < num_points; i++) {
+
+    //for (i = 0; i < num_points; i++) {
         ans = getMax( ans, getPointsInside(points, dis, i, radius, num_points) );
-    }
+    //}
+
 
     for (i = 0; i < num_points; i++) {
         free(dis[i]);
