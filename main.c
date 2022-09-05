@@ -65,8 +65,8 @@ int main(int argc, char ** argv)
     if (argc != 3) {
         perror ("Invalid amount of arguments\n");
         printf("Usage:\n");
-        printf("Argument 1 - path to file with points\n");
-        printf("Argument 2 - Radiys od circle\n");
+        printf("Argument 1 - Path to file with points\n");
+        printf("Argument 2 - Radius of circle\n");
         return 1;
     }
 
@@ -87,20 +87,23 @@ int main(int argc, char ** argv)
     radius = (double)tmp;
 
     printf("Filename = %s\n", argv[1]);
-    printf("Radius = %u\n", radius);
+    printf("Radius = %u\n", (size_t)radius);
+    printf("=================\n");
 
 // =================================================================
 //  Считываем данные из файла
 
     while( !feof(F) ) {
+        if (num_points > MAX_POINTS) {
+            printf("Read maximum possible amount of points. If there's others, they are most likely duplicates\n.");
+            break;
+        }
         fscanf_s(F, "%u,%u", &x, &y);
         // points[num_points] = _CBuild(x,y);
         points[num_points] = (double)x + ((double)y)*I;
         num_points++;
     }
     fclose(F);
-
-    // printArrayComplex(points, num_points);
 
 // =================================================================
 // Наивное решение.
@@ -115,29 +118,22 @@ int main(int argc, char ** argv)
         for (j = 0; j < MAX_POINTS_Y; j++) {
             z1 = (double)i + ((double)j)*I;
             for (k = 0; k < num_points; k++) {
-                // Расстояние от отдной точки до другой эквивалентно
+                // Расстояние от одной точки до другой эквивалентно
                 // модулю разности соотетствующих им комплексных чисел
                 dist = cabs(z1 - points[k]);
                 if (dist < radius) {
                     naive_solution[i][j]++;
+                    if ( naive_solution[i][j] > naive_solution_max ) {
+                        naive_solution_max = naive_solution[i][j];
+                        max_i = i;
+                        max_j = j;
+                    }
                 }
             }
         }
     }
 
-
-    for (i = 0; i < MAX_POINTS_X; i++) {
-        for (j = 0; j < MAX_POINTS_Y; j++) {
-            if ( naive_solution[i][j] > naive_solution_max ) {
-                naive_solution_max = naive_solution[i][j];
-                max_i = i;
-                max_j = j;
-            }
-        }
-    }
-
-    printf("Results of naive solution:\n");
-    printf("Circle of radius %1.0f have maximum points of %u with centre coordinates of (%u,%u)\n", radius, naive_solution_max, max_i, max_j);
+    printf("Naive solution have found maximum %u points in circle with centre of (%u,%u)\n", naive_solution_max, max_i, max_j);
     printf("=================\n");
 
 // =================================================================
@@ -145,9 +141,6 @@ int main(int argc, char ** argv)
 // Работает за O(N^2*logN)
 
     as_max = maxPoints(points, num_points, radius);
-    printf("Results of angular sweep solution:\n");
-    printf("Circle of radius %1.0f have maximum points of %u \n", radius, as_max);
-
 
 // =================================================================
     return 0;
