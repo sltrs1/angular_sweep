@@ -121,7 +121,7 @@ int main(int argc, char ** argv)
                 // Расстояние от одной точки до другой эквивалентно
                 // модулю разности соотетствующих им комплексных чисел
                 dist = cabs(z1 - points[k]);
-                if (dist < radius) {
+                if (dist <= radius) {
                     naive_solution[i][j]++;
                     if ( naive_solution[i][j] > naive_solution_max ) {
                         naive_solution_max = naive_solution[i][j];
