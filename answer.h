@@ -7,6 +7,7 @@ typedef struct Answer{
   size_t amount;
   size_t x;
   size_t y;
+  double phi;
 } Answer;
 
 

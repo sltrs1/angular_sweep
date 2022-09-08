@@ -117,13 +117,25 @@ size_t getPointsInside(double complex * points,
     double beta = 0;
     int count = 0;
     int res = 0;
+    double phi = 0;
 
     memset(angles, 0, sizeof(Pair)*(num_points*2+1));
 
+    // Суть алгоритма такова:
+    // Для каждой точки строится окружность, для которой эта точка находится на границе.
+    // Затем окружность вращается вокруг этой точки.
+    // Если в окружность попадает точка, счетчик увеличивается,
+    // если точка выходит из нее - счетчик уменьшается.
+
+    // Вычисляются углы векторов, соединяющих каждую точку входных данных
+    // с точкой, вокруг которой идет вращение.
+    // Выполняется проверка, что точка не является самой собой
+    // и что точка попадает в окружность.
+    // Входящие точки помечаются флагом 1, выходящие - 0.
     for (i = 0; i < num_points; i++) {
         z1 = (x+y*I);
         if ( cabs(z1 - points[i]) > 0.001 && // Точка не та же самая
-             dis[x][y][i] < 2*radius ) {     // Точно попадает в круг
+             dis[x][y][i] <= 2*radius ) {     // Точно попадает в круг
             b = acos( dis[x][y][i]/(2*radius) );
             a = carg( z1 - points[i] );
             alpha = a-b;
@@ -137,6 +149,7 @@ size_t getPointsInside(double complex * points,
         }
     }
 
+    // Сортировка углов для вращения
     for ( i = 0; j < angles_count - 1; i++ ) {
         for (j = (int)angles_count - 1; j > i; j--) {
             if ( !comparePairs(angles[j-1], angles[j]) ) {
@@ -145,6 +158,8 @@ size_t getPointsInside(double complex * points,
         }
     }
 
+    // По одному перебираются углы и ведется счет
+    // точек внутри окружности.
     count = 1;
     res = 1;
     for (j = 0; j < angles_count; j++) {
@@ -154,13 +169,17 @@ size_t getPointsInside(double complex * points,
         else
             count--;
 
-        if (count > res)
+        if (count > res) {
             res = count;
+            phi = angles[j].first;
+        }
+
     }
 
     answer->amount = res;
     answer->x = x;
     answer->y = y;
+    answer->phi = phi;
 
     return (size_t)res;
 }
@@ -176,6 +195,7 @@ size_t maxPoints(double complex * points, size_t num_points, double radius) {
     size_t ans = 0;
     Answer A;
     Answer B;
+    double complex center;
 
     dis = alloc3DArray(MAX_POINTS_X, MAX_POINTS_Y, num_points);
 
@@ -191,7 +211,6 @@ size_t maxPoints(double complex * points, size_t num_points, double radius) {
     for(i = 0; i < MAX_POINTS_X; i++) {
         for (j = 0; j < MAX_POINTS_Y; j++) {
             tmp = getMax( ans, getPointsInside(points, dis, i, j, radius, num_points, &A) );
-            //tmp = getMax( ans, getPointsInside(points, dis, 44, 46, radius, num_points, &A) );
             if (tmp > ans) {
                 ans = tmp;
                 B = A;
@@ -199,8 +218,14 @@ size_t maxPoints(double complex * points, size_t num_points, double radius) {
         }
     }
 
+    // Функция getPointsInside возвращает через аргумент Answer
+    // координаты точки, вокруг которой вращалась окружность и угол,
+    // для которого было найжео максимальное количство точек.
+    // Зная эти параметры и радиус, можно вычислить центр окружности.
+    center = (B.x + (B.y)*I) + (radius*cos(B.phi) + radius*sin(B.phi)*I);
 
-    printf("Angular sweep have found maximum %u points in circle with centre of (%u,%u)\n", B.amount, B.x, B.y);
+
+    printf("Angular sweep have found maximum %u points in circle with centre of (%1.2f,%1.2f)\n", B.amount, creal(center), cimag(center));
 
     free3DArray(dis, MAX_POINTS_X, MAX_POINTS_Y);
 
